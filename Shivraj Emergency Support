@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shivraj Emergency Support - Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #d32f2f;
+        }
+        h2 {
+            color: #333;
+        }
+        pre {
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .file-section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shivraj Emergency Support - Source Code</h1>
+    <p>This page contains all the source code for the Shivraj Emergency Support app, designed for Shivraj Municipality (Wards 1-11). The app includes emergency buttons, GPS, SMS, Firebase integration, and OpenStreetMap.</p>
+
+    <div class="file-section">
+        <h2>lib/main.dart</h2>
+        <pre><code>
+import 'package:flutter/material.dart';
+import 'package:shivraj_emergency_support/screens/home_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(ShivrajEmergencySupport());
+}
+
+class ShivrajEmergencySupport extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: HomeScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        fontFamily: 'NotoSans',
+      ),
+    );
+  }
+}
+        </code></pre
