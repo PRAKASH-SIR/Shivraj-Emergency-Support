@@ -3,38 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shivraj Emergency Support - Code</title>
+    <title>Shivraj Emergency Support - Source Code</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
-            color: #d32f2f;
-        }
-        h2 {
-            color: #333;
-        }
-        pre {
-            background-color: #1e1e1e;
-            color: #dcdcdc;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        code {
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .file-section {
-            margin-bottom: 30px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        h1 { text-align: center; color: #d32f2f; }
+        h2 { color: #333; }
+        pre { background-color: #1e1e1e; color: #dcdcdc; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        code { font-family: 'Courier New', Courier, monospace; }
+        .file-section { margin-bottom: 30px; }
+        a { color: #d32f2f; }
     </style>
 </head>
 <body>
     <h1>Shivraj Emergency Support - Source Code</h1>
     <p>This page contains all the source code for the Shivraj Emergency Support app, designed for Shivraj Municipality (Wards 1-11). The app includes emergency buttons, GPS, SMS, Firebase integration, and OpenStreetMap.</p>
+    <p>View this code on <a href="https://github.com/your-username/shivraj-emergency-support">GitHub</a>.</p>
+
+    <div class="file-section">
+        <h2>pubspec.yaml</h2>
+        <pre><code>
+name: shivraj_emergency_support
+description: An emergency support app for Shivraj Municipality.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.18.0 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  geolocator: ^9.0.2
+  cloud_firestore: ^4.8.0
+  firebase_core: ^2.13.0
+  firebase_messaging: ^14.6.0
+  flutter_sms: ^2.3.3
+  open_street_map_search_and_pick: ^0.1.0
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: fonts/NotoSans-Regular.ttf
+        </code></pre>
+    </div>
 
     <div class="file-section">
         <h2>lib/main.dart</h2>
@@ -62,4 +83,300 @@ class ShivrajEmergencySupport extends StatelessWidget {
     );
   }
 }
-        </code></pre
+        </code></pre>
+    </div>
+
+    <div class="file-section">
+        <h2>lib/screens/home_screen.dart</h2>
+        <pre><code>
+import 'package:flutter/material.dart';
+import 'package:shivraj_emergency_support/screens/map_screen.dart';
+import 'package:shivraj_emergency_support/services/location_service.dart';
+import 'package:shivraj_emergency_support/services/firebase_service.dart';
+import 'package:shivraj_emergency_support/services/sms_service.dart';
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String selectedWard = 'वडा १';
+  final List<String> wards = [
+    'वडा १', 'वडा २', 'वडा ३', 'वडा ४', 'वडा ५', 
+    'वडा ६', 'वडा ७', 'वडा ८', 'वडा ९', 'वडा १०', 'वडा ११'
+  ];
+  final LocationService _locationService = LocationService();
+  final FirebaseService _firebaseService = FirebaseService();
+  final SmsService _smsService = SmsService();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('शिवराज आपतकालीन सहायता'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownButton<String>(
+              value: selectedWard,
+              isExpanded: true,
+              hint: Text('वडा छान्नुहोस्'),
+              items: wards.map((String ward) {
+                return DropdownMenuItem<String>(
+                  value: ward,
+                  child: Text(ward),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedWard = newValue!;
+                });
+              },
+            ),
+            SizedBox(height: 20),
+            EmergencyButton(
+              label: 'एम्बुलेन्स',
+              icon: Icons.local_hospital,
+              onPressed: () => _sendEmergencyRequest('एम्बुलेन्स'),
+            ),
+            EmergencyButton(
+              label: 'दमकल',
+              icon: Icons.fire_truck,
+              onPressed: () => _sendEmergencyRequest('दमकल'),
+            ),
+            EmergencyButton(
+              label: 'नगर प्रहरी',
+              icon: Icons.local_police,
+              onPressed: () => _sendEmergencyRequest('नगर प्रहरी'),
+            ),
+            EmergencyButton(
+              label: 'प्यानिक बटन',
+              icon: Icons.warning,
+              onPressed: () => _sendEmergencyRequest('प्यानिक'),
+            ),
+            EmergencyButton(
+              label: 'नक्सा हेर्नुहोस्',
+              icon: Icons.map,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapScreen(ward: selectedWard),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _sendEmergencyRequest(String type) async {
+    try {
+      var location = await _locationService.getUserLocation();
+      await _firebaseService.sendEmergencyRequest(
+        type: type,
+        ward: selectedWard,
+        location: location,
+      );
+      await _smsService.sendEmergencySms(
+        type: type,
+        ward: selectedWard,
+        latitude: location.latitude.toString(),
+        longitude: location.longitude.toString(),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$selectedWard मा $type को लागि सूचना पठाइयो!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('त्रुटि: $e')),
+      );
+    }
+  }
+}
+
+class EmergencyButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  EmergencyButton({required this.label, required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 30),
+        label: Text(
+          label,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.symmetric(vertical: 15),
+          textStyle: TextStyle(fontSize: 18),
+        ),
+      ),
+    );
+  }
+}
+        </code></pre>
+    </div>
+
+    <div class="file-section">
+        <h2>lib/screens/map_screen.dart</h2>
+        <pre><code>
+import 'package:flutter/material.dart';
+import 'package:open_street_map_search_and_pick/open_street_map_search_and_pick.dart';
+
+class MapScreen extends StatelessWidget {
+  final String ward;
+
+  MapScreen({required this.ward});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('$ward को नक्सा'),
+      ),
+      body: OpenStreetMapSearchAndPick(
+        center: LatLong(27.7172, 85.3240),
+        buttonColor: Colors.red,
+        buttonText: 'स्थान छान्नुहोस्',
+        onPicked: (pickedData) {
+          Navigator.pop(context, pickedData);
+        },
+      ),
+    );
+  }
+}
+        </code></pre>
+    </div>
+
+    <div class="file-section">
+        <h2>lib/services/location_service.dart</h2>
+        <pre><code>
+import 'package:geolocator/geolocator.dart';
+
+class LocationService {
+  Future<Position> getUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('लोकेशन सेवा बन्द छ।');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('लोकेशन अनुमति अस्वीकृत।');
+      }
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+}
+        </code></pre>
+    </div>
+
+    <div class="file-section">
+        <h2>lib/services/firebase_service.dart</h2>
+        <pre><code>
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+
+class FirebaseService {
+  Future<void> sendEmergencyRequest({
+    required String type,
+    required String ward,
+    required Position location,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('emergency_requests').add({
+        'type': type,
+        'ward': ward,
+        'latitude': location.latitude,
+        'longitude': location.longitude,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('सूचना पठाउन असफल: $e');
+    }
+  }
+}
+        </code></pre>
+    </div>
+
+    <div class="file-section">
+        <h2>lib/services/sms_service.dart</h2>
+        <pre><code>
+import 'package:flutter_sms/flutter_sms.dart';
+
+class SmsService {
+  Future<void> sendEmergencySms({
+    required String type,
+    required String ward,
+    required String latitude,
+    required String longitude,
+  }) async {
+    try {
+      String message = '$type को लागि आपतकालीन सहायता चाहिए!\nवडा: $ward\nस्थान: $latitude, $longitude';
+      String result = await sendSMS(
+        message: message,
+        recipients: ['+9771234567890'],
+      );
+      print('SMS पठाइयो: $result');
+    } catch (e) {
+      throw Exception('SMS पठाउन असफल: $e');
+    }
+  }
+}
+        </code></pre>
+    </div>
+
+    <div class="file-section">
+        <h2>README.md</h2>
+        <pre><code>
+# Shivraj Emergency Support
+
+यो शिवराज नगरपालिकाको आधिकारिक आपतकालीन सहायता एप हो, जसले वडा १-११ का बासिन्दालाई एम्बुलेन्स, दमकल, नगर प्रहरी, र अन्य आपतकालीन सेवाहरूसँग जोड्छ।
+
+## फिचरहरू
+- आपतकालीन बटनहरू (एम्बुलेन्स, दमकल, नगर प्रहरी, प्यानिक)
+- वडा १-११ छान्ने ड्रपडाउन
+- GPS लोकेशन पठाउने
+- SMS मार्फत सम्पर्क
+- Firebase मा सूचना रेकर्ड
+- OpenStreetMap मा नक्सा
+- नेपाली भाषा UI
+
+## सेटअप
+1. Flutter SDK र Android Studio स्थापना गर्नुहोस्।
+2. `flutter pub get` चलाएर प्याकेजहरू स्थापना गर्नुहोस्।
+3. Firebase Console मा प्रोजेक्ट बनाउनुहोस् र `flutterfire configure` चलाउनुहोस्।
+4. `fonts/NotoSans-Regular.ttf` मा Noto Sans फन्ट राख्नुहोस्।
+5. `flutter run` चलाएर एप टेस्ट गर्नुहोस्।
+
+## Play Store मा अपलोड
+1. `flutter build appbundle --release` चलाएर AAB फाइल बनाउनुहोस्।
+2. Google Play Console मा खाता बनाउनुहोस् ($25 शुल्क)।
+3. विवरण, स्क्रिनसट, र प्राइभेसी पोलिसी अपलोड गर्नुहोस्।
+4. रिभ्यूका लागि पठाउनुहोस्।
+        </code></pre>
+    </div>
+</body>
+</html>
